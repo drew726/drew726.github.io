@@ -192,16 +192,29 @@ class Unmined {
                     scale: item.imageScale
                 }));
 
-            if (item.text)
+            if (item.text) {                               
                 style.setText(new ol.style.Text({
                     text: item.text,
                     font: item.font,
                     offsetX: item.offsetX,
                     offsetY: item.offsetY,
-                    fill: new ol.style.Fill({
+                    fill: item.textColor ? new ol.style.Fill({
                         color: item.textColor
-                    })
+                    }) : null,
+                    padding: item.textPadding ?? [2, 4, 2, 4],
+                    stroke: item.textStrokeColor ? new ol.style.Stroke({
+                        color: item.textStrokeColor,
+                        width: item.textStrokeWidth
+                    }) : null,
+                    backgroundFill: item.textBackgroundColor ? new ol.style.Fill({
+                        color: item.textBackgroundColor
+                    }) : null,
+                    backgroundStroke: item.textBackgroundStrokeColor ? new ol.style.Stroke({
+                        color: item.textBackgroundStrokeColor,
+                        width: item.textBackgroundStrokeWidth
+                    }) : null,
                 }));
+            }
 
             feature.setStyle(style);
 
@@ -216,6 +229,36 @@ class Unmined {
             source: vectorSource
         });
         return vectorLayer;
+    }
+    
+    defaultPlayerMarkerStyle = {
+            image: "playerimages/default.png",
+            imageAnchor: [0.5, 0.5],
+            imageScale: 0.25,
+
+            textColor: "white",
+            offsetX: 0,
+            offsetY: 20,
+            font: "14px Arial",
+            //textStrokeColor: "black",
+            //textStrokeWidth: 2,
+            textBackgroundColor: "#00000088",
+            //textBackgroundStrokeColor: "black",
+            //textBackgroundStrokeWidth: 1,
+            textPadding: [2, 4, 2, 4],
+    }
+
+    playerToMarker(player) {
+        var marker = Object.assign({}, this.defaultPlayerMarkerStyle);
+        marker.x = player.x;
+        marker.z = player.z;
+        marker.text = player.name;
+        return marker;
+    }
+
+    createPlayerMarkers(players) {
+        let markers = players.map(player => this.playerToMarker(player));
+        return markers;
     }
 
 }
