@@ -5,10 +5,10 @@ var UnminedMapProperties = {
     defaultZoom: 0,
     imageFormat: "jpeg",
     minRegionX: -6,
-    minRegionZ: -2,
+    minRegionZ: -3,
     maxRegionX: 4,
     maxRegionZ: 11,
-    worldName: "UNCHAINED 05/14/23 01:18:22",
+    worldName: "UNCHAINED 05/15/23 21:48:44",
     background: "#000000",
     markers: new Array()
 }
