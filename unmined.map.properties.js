@@ -8,7 +8,7 @@ var UnminedMapProperties = {
     minRegionZ: -5,
     maxRegionX: 4,
     maxRegionZ: 11,
-    worldName: "UNCHAINED 07/04/23 10:38:44",
+    worldName: "UNCHAINED 07/04/23 20:22:36",
     background: "#000000",
     markers: new Array()
 }
