@@ -2,6 +2,33 @@ class Unmined {
 
     map(mapId, options, regions) {
 
+        var dimensionSelect = document.getElementById('dimensionSelect');
+
+        dimensionSelect.addEventListener('change', function () {
+            var selectedValue = dimensionSelect.value;
+
+            switch (selectedValue) {
+                case 'overworld':
+                    map.setLayerGroup(new ol.layer.Group({
+                        layers: [overworldLayer]
+                    }));
+                    break;
+                case 'nether':
+                    map.setLayerGroup(new ol.layer.Group({
+                        layers: [netherLayer]
+                    }));
+                    break;
+                case 'end':
+                    map.setLayerGroup(new ol.layer.Group({
+                        layers: [endLayer]
+                    }));
+                    break;
+                default:
+                    break;
+            }
+        });
+
+
         const dpiScale = window.devicePixelRatio ?? 1.0;
 
         const worldMinX = options.minRegionX * 512;
@@ -52,7 +79,7 @@ class Unmined {
             tileSize: worldTileSize / dpiScale
         });
 
-        var unminedLayer =
+        var overworldLayer =
             new ol.layer.Tile({
                 source: new ol.source.XYZ({
                     projection: viewProjection,
@@ -111,7 +138,153 @@ class Unmined {
                             && tileX <= maxTileX
                             && tileY <= maxTileY
                             && hasTile()) {
-                            const url = ('tiles/zoom.{z}/{xd}/{yd}/tile.{x}.{y}.' + options.imageFormat)
+                            const url = ('overworld/tiles/zoom.{z}/{xd}/{yd}/tile.{x}.{y}.' + options.imageFormat)
+                                .replace('{z}', worldZoom)
+                                .replace('{yd}', Math.floor(tileY / 10))
+                                .replace('{xd}', Math.floor(tileX / 10))
+                                .replace('{y}', tileY)
+                                .replace('{x}', tileX);
+                            return url;
+                        }
+                        else
+                            return undefined;
+                    }
+                })
+            });
+
+        var netherLayer =
+            new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    projection: viewProjection,
+                    tileGrid: tileGrid,
+                    tilePixelRatio: dpiScale,
+                    tileSize: worldTileSize / dpiScale,
+
+                    tileUrlFunction: function (coordinate) {
+                        const worldZoom = -(mapZoomLevels - coordinate[0]) + options.maxZoom;
+                        const worldZoomFactor = Math.pow(2, worldZoom);
+
+                        const minTileX = Math.floor(worldMinX * worldZoomFactor / worldTileSize);
+                        const minTileY = Math.floor(worldMinY * worldZoomFactor / worldTileSize);
+                        const maxTileX = Math.ceil((worldMinX + worldWidth) * worldZoomFactor / worldTileSize) - 1;
+                        const maxTileY = Math.ceil((worldMinY + worldHeight) * worldZoomFactor / worldTileSize) - 1;
+
+                        const tileX = coordinate[1];
+                        const tileY = coordinate[2];
+
+                        const tileBlockSize = worldTileSize / worldZoomFactor;
+                        const tileBlockPoint = {
+                            x: tileX * tileBlockSize,
+                            z: tileY * tileBlockSize
+                        };
+
+                        const hasTile = function () {
+                            const tileRegionPoint = {
+                                x: Math.floor(tileBlockPoint.x / 512),
+                                z: Math.floor(tileBlockPoint.z / 512)
+                            };
+                            const tileRegionSize = Math.ceil(tileBlockSize / 512);
+
+                            for (let x = tileRegionPoint.x; x < tileRegionPoint.x + tileRegionSize; x++) {
+                                for (let z = tileRegionPoint.z; z < tileRegionPoint.z + tileRegionSize; z++) {
+                                    const group = {
+                                        x: Math.floor(x / 32),
+                                        z: Math.floor(z / 32)
+                                    };
+                                    const regionMap = regions.find(e => e.x == group.x && e.z == group.z);
+                                    if (regionMap) {
+                                        const relX = x - group.x * 32;
+                                        const relZ = z - group.z * 32;
+                                        const inx = relZ * 32 + relX;
+                                        var b = regionMap.m[Math.floor(inx / 32)];
+                                        var bit = inx % 32;
+                                        var found = (b & (1 << bit)) != 0;
+                                        if (found) return true;
+                                    }
+                                }
+                            }
+                            return false;
+                        };
+
+                        if (tileX >= minTileX
+                            && tileY >= minTileY
+                            && tileX <= maxTileX
+                            && tileY <= maxTileY
+                            && hasTile()) {
+                            const url = ('nether/tiles/zoom.{z}/{xd}/{yd}/tile.{x}.{y}.' + options.imageFormat)
+                                .replace('{z}', worldZoom)
+                                .replace('{yd}', Math.floor(tileY / 10))
+                                .replace('{xd}', Math.floor(tileX / 10))
+                                .replace('{y}', tileY)
+                                .replace('{x}', tileX);
+                            return url;
+                        }
+                        else
+                            return undefined;
+                    }
+                })
+            });
+        
+        var endLayer =
+            new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    projection: viewProjection,
+                    tileGrid: tileGrid,
+                    tilePixelRatio: dpiScale,
+                    tileSize: worldTileSize / dpiScale,
+
+                    tileUrlFunction: function (coordinate) {
+                        const worldZoom = -(mapZoomLevels - coordinate[0]) + options.maxZoom;
+                        const worldZoomFactor = Math.pow(2, worldZoom);
+
+                        const minTileX = Math.floor(worldMinX * worldZoomFactor / worldTileSize);
+                        const minTileY = Math.floor(worldMinY * worldZoomFactor / worldTileSize);
+                        const maxTileX = Math.ceil((worldMinX + worldWidth) * worldZoomFactor / worldTileSize) - 1;
+                        const maxTileY = Math.ceil((worldMinY + worldHeight) * worldZoomFactor / worldTileSize) - 1;
+
+                        const tileX = coordinate[1];
+                        const tileY = coordinate[2];
+
+                        const tileBlockSize = worldTileSize / worldZoomFactor;
+                        const tileBlockPoint = {
+                            x: tileX * tileBlockSize,
+                            z: tileY * tileBlockSize
+                        };
+
+                        const hasTile = function () {
+                            const tileRegionPoint = {
+                                x: Math.floor(tileBlockPoint.x / 512),
+                                z: Math.floor(tileBlockPoint.z / 512)
+                            };
+                            const tileRegionSize = Math.ceil(tileBlockSize / 512);
+
+                            for (let x = tileRegionPoint.x; x < tileRegionPoint.x + tileRegionSize; x++) {
+                                for (let z = tileRegionPoint.z; z < tileRegionPoint.z + tileRegionSize; z++) {
+                                    const group = {
+                                        x: Math.floor(x / 32),
+                                        z: Math.floor(z / 32)
+                                    };
+                                    const regionMap = regions.find(e => e.x == group.x && e.z == group.z);
+                                    if (regionMap) {
+                                        const relX = x - group.x * 32;
+                                        const relZ = z - group.z * 32;
+                                        const inx = relZ * 32 + relX;
+                                        var b = regionMap.m[Math.floor(inx / 32)];
+                                        var bit = inx % 32;
+                                        var found = (b & (1 << bit)) != 0;
+                                        if (found) return true;
+                                    }
+                                }
+                            }
+                            return false;
+                        };
+
+                        if (tileX >= minTileX
+                            && tileY >= minTileY
+                            && tileX <= maxTileX
+                            && tileY <= maxTileY
+                            && hasTile()) {
+                            const url = ('end/tiles/zoom.{z}/{xd}/{yd}/tile.{x}.{y}.' + options.imageFormat)
                                 .replace('{z}', worldZoom)
                                 .replace('{yd}', Math.floor(tileY / 10))
                                 .replace('{xd}', Math.floor(tileX / 10))
@@ -136,7 +309,7 @@ class Unmined {
                 mousePositionControl
             ]),
             layers: [
-                unminedLayer,                
+                overworldLayer,                
                 /*
                 new ol.layer.Tile({
                     source: new ol.source.TileDebug({
